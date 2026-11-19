@@ -5,13 +5,14 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
-    name: Build & Test Nigutu
+    name: Build, Test & Release Nigutu
     runs-on: ubuntu-latest
 
     steps:
@@ -42,6 +43,7 @@ jobs:
           GH_CLIENT_ID: ${{ secrets.GH_CLIENT_ID }}
           GH_CLIENT_SECRET: ${{ secrets.GH_CLIENT_SECRET }}
           FLOW_NEURO_API_KEY: ${{ secrets.FLOW_NEURO_API_KEY }}
+          FLOW_NEURO_BASE_URL: ${{ secrets.FLOW_NEURO_BASE_URL }}
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon --max-workers=2 \
@@ -68,11 +70,29 @@ jobs:
           GH_CLIENT_ID: ${{ secrets.GH_CLIENT_ID }}
           GH_CLIENT_SECRET: ${{ secrets.GH_CLIENT_SECRET }}
           FLOW_NEURO_API_KEY: ${{ secrets.FLOW_NEURO_API_KEY }}
+          FLOW_NEURO_BASE_URL: ${{ secrets.FLOW_NEURO_BASE_URL }}
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon --max-workers=2 assembleUniversalGmsDebug assembleUniversalFossDebug
-          test -s app/build/outputs/apk/universalGms/debug/app-universalGms-debug.apk || \
-            find app/build/outputs/apk -name "*.apk" -size +0c | grep -q .
+
+      - name: Verify & Package Nigutu Debug APK
+        id: verify_apk
+        run: |
+          APK_PATH="app/build/outputs/apk/universalGms/debug/app-universalGms-debug.apk"
+          if [ ! -s "$APK_PATH" ]; then
+            APK_PATH="$(find app/build/outputs/apk -name "*debug*.apk" -size +0c | head -n 1)"
+          fi
+          test -s "$APK_PATH"
+          AAPT2="$(find "$ANDROID_HOME/build-tools" -name aapt2 | sort -V | tail -n 1)"
+          test -x "$AAPT2"
+          BADGING="$("$AAPT2" dump badging "$APK_PATH")"
+          echo "$BADGING" | head -n 5
+          echo "$BADGING" | grep -qE "package: name='com\.nigutu\.app(\.debug)?'"
+          echo "$BADGING" | grep -q "application-label:'Nigutu'"
+          cp "$APK_PATH" Nigutu-debug.apk
+          ls -lh Nigutu-debug.apk
+          VERSION_NAME="$(echo "$BADGING" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")"
+          echo "version_name=${VERSION_NAME:-1.4.7}" >> "$GITHUB_OUTPUT"
 
       - name: Decode Release Keystore (when configured)
         if: ${{ secrets.KEYSTORE_BASE64 != '' }}
@@ -92,6 +112,7 @@ jobs:
           GH_CLIENT_ID: ${{ secrets.GH_CLIENT_ID }}
           GH_CLIENT_SECRET: ${{ secrets.GH_CLIENT_SECRET }}
           FLOW_NEURO_API_KEY: ${{ secrets.FLOW_NEURO_API_KEY }}
+          FLOW_NEURO_BASE_URL: ${{ secrets.FLOW_NEURO_BASE_URL }}
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon --max-workers=2 assembleUniversalGmsRelease
@@ -104,8 +125,39 @@ jobs:
           path: "**/build/reports/tests/**"
           if-no-files-found: ignore
 
-      - name: Upload Universal APKs
+      - name: Upload Nigutu Debug & Universal APKs
         uses: actions/upload-artifact@v4
         with:
           name: Nigutu-Universal-APK
-          path: app/build/outputs/apk/**/*.apk
+          path: |
+            Nigutu-debug.apk
+            app/build/outputs/apk/**/*.apk
+
+      - name: Publish Nigutu Debug Release
+        if: ${{ success() && github.event_name != 'pull_request' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION_NAME="${{ steps.verify_apk.outputs.version_name }}"
+          TAG="v${VERSION_NAME}-debug.${{ github.run_number }}-${{ github.run_attempt }}"
+          BUILD_DATE="$(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          NOTES_FILE="$(mktemp)"
+          cat > "$NOTES_FILE" <<EOF
+          ## Nigutu Debug Build
+
+          - **Build Date**: ${BUILD_DATE}
+          - **Commit SHA**: \`${{ github.sha }}\`
+          - **App Version**: \`${VERSION_NAME}\`
+          - **Package ID**: \`com.nigutu.app.debug\`
+          - **Build Variant**: \`universalGmsDebug\` (also verified \`universalFossDebug\`)
+          - **Unit Tests**: Passed across library modules and \`:app\`
+
+          ### Installation Instructions
+          1. Download \`Nigutu-debug.apk\` from the assets below.
+          2. Enable **Install unknown apps** on your Android device (Android 8.0+ / API 26+).
+          3. Open \`Nigutu-debug.apk\` to install alongside release builds cleanly.
+          EOF
+          gh release create "$TAG" Nigutu-debug.apk \
+            --title "Nigutu Debug Build (#${{ github.run_number }})" \
+            --notes-file "$NOTES_FILE" \
+            --prerelease

@@ -98,6 +98,7 @@ import echo.music.iad1tya.constants.VarispeedKey
 
 import echo.music.iad1tya.constants.QueueEditLockKey
 import echo.music.iad1tya.constants.ShowLyricsOnPlayerKey
+import echo.music.iad1tya.constants.ShowSpectrumVisualizerKey
 import echo.music.iad1tya.listentogether.ConnectionState
 import echo.music.iad1tya.listentogether.ListenTogetherEvent
 import echo.music.iad1tya.models.MediaMetadata
@@ -211,6 +212,8 @@ fun PlayerMenu(
   val (exportedSongIds) = rememberPreference(key = ExportedSongIdsKey, defaultValue = "")
   val (showLyricsOnPlayer, onShowLyricsOnPlayerChange) =
     rememberPreference(key = ShowLyricsOnPlayerKey, defaultValue = false)
+  val (showSpectrumVisualizer, onShowSpectrumVisualizerChange) =
+    rememberPreference(key = ShowSpectrumVisualizerKey, defaultValue = false)
 
   val (exportProgressString) =
     rememberPreference(key = echo.music.iad1tya.constants.ExportProgressKey, defaultValue = "")
@@ -654,6 +657,28 @@ fun PlayerMenu(
                 )
               )
             }
+            add(
+              Material3MenuItemData(
+                title = {
+                  Text(
+                    text =
+                      if (showSpectrumVisualizer) "Hide Audio Spectrum"
+                      else "Show Audio Spectrum"
+                  )
+                },
+                icon = {
+                  Icon(
+                    painter = painterResource(R.drawable.graphic_eq),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp)
+                  )
+                },
+                onClick = {
+                  onShowSpectrumVisualizerChange(!showSpectrumVisualizer)
+                  onDismiss()
+                }
+              )
+            )
 
             val (queueLockedPref) = rememberPreference(QueueEditLockKey, defaultValue = false)
             val effectiveQueueLocked = isQueueLocked ?: queueLockedPref

@@ -137,6 +137,7 @@ import echo.music.iad1tya.di.PlayerCache
 import echo.music.iad1tya.echomusic.updater.downloadmanager.EchoNotificationProvider
 import echo.music.dsp.audio.AutomixDuckAudioProcessor
 import echo.music.dsp.audio.CustomEqualizerAudioProcessor
+import echo.music.dsp.audio.SpectrumAudioProcessor
 import echo.music.dsp.audio.StereoWidenerAudioProcessor
 import echo.music.dsp.controller.DspController
 import echo.music.dsp.data.EQProfileRepository
@@ -526,6 +527,7 @@ class MusicService : MediaLibraryService(), Player.Listener, PlaybackStatsListen
   private val playerDuckProcessors = HashMap<Player, AutomixDuckAudioProcessor>()
   private val playerStereoWideners = HashMap<Player, StereoWidenerAudioProcessor>()
   private val playerEqProcessors = HashMap<Player, CustomEqualizerAudioProcessor>()
+  private val playerSpectrumProcessors = HashMap<Player, SpectrumAudioProcessor>()
   private val cutoffGuard = PlaybackCutoffGuard()
 
   private val instantSilenceSkipEnabled = MutableStateFlow(false)
@@ -1625,6 +1627,8 @@ class MusicService : MediaLibraryService(), Player.Listener, PlaybackStatsListen
     val silenceProcessor = SilenceDetectorAudioProcessor { handleLongSilenceDetected() }
 
     val stereoWidener = StereoWidenerAudioProcessor()
+    val spectrumProcessor = dspController.createSpectrumProcessor()
+    dspController.addSpectrumProcessor(spectrumProcessor)
 
     runBlocking {
       val skipSilence = dataStore.get(SkipSilenceKey, false)
@@ -1637,7 +1641,13 @@ class MusicService : MediaLibraryService(), Player.Listener, PlaybackStatsListen
       ExoPlayer.Builder(this)
         .setMediaSourceFactory(createMediaSourceFactory())
         .setRenderersFactory(
-          createRenderersFactory(eqProcessor, silenceProcessor, duckProcessor, stereoWidener)
+          createRenderersFactory(
+            eqProcessor,
+            silenceProcessor,
+            duckProcessor,
+            stereoWidener,
+            spectrumProcessor,
+          )
         )
         .setLoadControl(
           DefaultLoadControl.Builder()
@@ -1668,6 +1678,7 @@ class MusicService : MediaLibraryService(), Player.Listener, PlaybackStatsListen
     playerDuckProcessors[player] = duckProcessor
     playerStereoWideners[player] = stereoWidener
     playerEqProcessors[player] = eqProcessor
+    playerSpectrumProcessors[player] = spectrumProcessor
 
     player.apply {
       runBlocking {
@@ -3227,6 +3238,9 @@ class MusicService : MediaLibraryService(), Player.Listener, PlaybackStatsListen
     @Player.State playbackState: Int,
   ) {
 
+    if (playbackState == Player.STATE_ENDED || playbackState == Player.STATE_IDLE) {
+      dspController.resetSpectrum()
+    }
     if (playbackState == Player.STATE_ENDED) {
       // The queue ran out: no transition will tell the last episode is done.
       savePodcastPosition()
@@ -4529,6 +4543,7 @@ class MusicService : MediaLibraryService(), Player.Listener, PlaybackStatsListen
     silenceProcessor: SilenceDetectorAudioProcessor,
     duckProcessor: AutomixDuckAudioProcessor,
     stereoWidener: StereoWidenerAudioProcessor,
+    spectrumProcessor: SpectrumAudioProcessor? = null,
   ) =
     object : DefaultRenderersFactory(this) {
       override fun buildAudioSink(
@@ -4536,17 +4551,20 @@ class MusicService : MediaLibraryService(), Player.Listener, PlaybackStatsListen
         enableFloatOutput: Boolean,
         enableAudioTrackPlaybackParams: Boolean,
       ): androidx.media3.exoplayer.audio.AudioSink {
+        val chainProcessors =
+          listOfNotNull(
+            eqProcessor,
+            duckProcessor,
+            silenceProcessor,
+            stereoWidener,
+            spectrumProcessor,
+          ).toTypedArray()
         val defaultSink = DefaultAudioSink.Builder(this@MusicService)
           .setEnableFloatOutput(enableFloatOutput)
           .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
           .setAudioProcessorChain(
             DefaultAudioSink.DefaultAudioProcessorChain(
-              arrayOf(
-                eqProcessor,
-                duckProcessor,
-                silenceProcessor,
-                stereoWidener,
-              ),
+              chainProcessors,
               SilenceSkippingAudioProcessor(2_000_000, 20_000, 256),
               SonicAudioProcessor(),
             ),
@@ -4771,6 +4789,7 @@ class MusicService : MediaLibraryService(), Player.Listener, PlaybackStatsListen
     playerSilenceProcessors.remove(player)
     playerStereoWideners.remove(player)
     playerEqProcessors.remove(player)?.let { dspController.removeAudioProcessor(it) }
+    playerSpectrumProcessors.remove(player)?.let { dspController.removeSpectrumProcessor(it) }
 
     player.release()
     discordUpdateJob?.cancel()
@@ -5448,6 +5467,7 @@ class MusicService : MediaLibraryService(), Player.Listener, PlaybackStatsListen
     playerSilenceProcessors.remove(pb.player)
     playerStereoWideners.remove(pb.player)
     playerEqProcessors.remove(pb.player)?.let { dspController.removeAudioProcessor(it) }
+    playerSpectrumProcessors.remove(pb.player)?.let { dspController.removeSpectrumProcessor(it) }
     try {
       pb.player.removeListener(secondaryPlayerListener)
       pb.player.stop()
@@ -5801,6 +5821,7 @@ class MusicService : MediaLibraryService(), Player.Listener, PlaybackStatsListen
     fadingPlayer?.let { playerDuckProcessors.remove(it) }
     fadingPlayer?.let { playerStereoWideners.remove(it) }
     fadingPlayer?.let { playerEqProcessors.remove(it)?.let { eq -> dspController.removeAudioProcessor(eq) } }
+    fadingPlayer?.let { playerSpectrumProcessors.remove(it)?.let { sp -> dspController.removeSpectrumProcessor(sp) } }
     fadingPlayer?.stop()
     fadingPlayer?.clearMediaItems()
     fadingPlayer?.release()

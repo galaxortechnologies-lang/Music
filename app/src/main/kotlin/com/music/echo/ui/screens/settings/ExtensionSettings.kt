@@ -106,8 +106,6 @@ fun ExtensionSettingsScreen(
         Spacer(Modifier.windowInsetsPadding(echo.music.iad1tya.LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
         Spacer(Modifier.height(16.dp))
 
-        val uriHandler = LocalUriHandler.current
-
         Material3SettingsGroup(
             title = "Playback Priority",
             items = listOf(
@@ -123,24 +121,6 @@ fun ExtensionSettingsScreen(
                         )
                     },
                     onClick = { onPreferExtensionAudioChange(!preferExtensionAudio) }
-                ),
-                Material3SettingsItem(
-                    title = { Text("High Quality (320kbps) Music") },
-                    description = { Text("Visit 320kbps.echomusic.fun for setup guide") },
-                    icon = painterResource(R.drawable.ic_hq),
-                    trailingContent = {
-                        Icon(
-                            painter = painterResource(R.drawable.navigate_next),
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    onClick = {
-                        try {
-                            uriHandler.openUri("https://320kbps.echomusic.fun/")
-                        } catch (_: Exception) {}
-                    }
                 )
             )
         )

@@ -5,7 +5,10 @@ import androidx.media3.common.audio.AudioProcessor
 import androidx.media3.common.util.UnstableApi
 import echo.music.dsp.audio.AutomixDuckAudioProcessor
 import echo.music.dsp.audio.CustomEqualizerAudioProcessor
+import echo.music.dsp.audio.SpectrumAudioProcessor
 import echo.music.dsp.audio.StereoWidenerAudioProcessor
+import echo.music.dsp.core.SpectrumAnalyzer
+import echo.music.dsp.core.SpectrumFrame
 import echo.music.dsp.core.models.SavedEQProfile
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.inject.Inject
@@ -22,6 +25,7 @@ class DspControllerImpl @Inject constructor() : DspController {
   private val eqProcessors = CopyOnWriteArrayList<CustomEqualizerAudioProcessor>()
   private val widenerProcessors = CopyOnWriteArrayList<StereoWidenerAudioProcessor>()
   private val duckProcessors = CopyOnWriteArrayList<AutomixDuckAudioProcessor>()
+  private val spectrumProcessors = CopyOnWriteArrayList<SpectrumAudioProcessor>()
 
   private val _activeProfile = MutableStateFlow<SavedEQProfile?>(null)
   override val activeProfile: StateFlow<SavedEQProfile?> = _activeProfile.asStateFlow()
@@ -32,6 +36,10 @@ class DspControllerImpl @Inject constructor() : DspController {
   private val _stereoWidth = MutableStateFlow(1f)
   override val stereoWidth: StateFlow<Float> = _stereoWidth.asStateFlow()
 
+  private val _spectrumFrame = MutableStateFlow(SpectrumFrame.EMPTY)
+  override val spectrumFrame: StateFlow<SpectrumFrame> = _spectrumFrame.asStateFlow()
+
+  @Volatile private var spectrumEnabled: Boolean = false
   @Volatile private var pendingProfile: SavedEQProfile? = null
   @Volatile private var shouldDisable: Boolean = false
 
@@ -54,22 +62,33 @@ class DspControllerImpl @Inject constructor() : DspController {
     val eq = CustomEqualizerAudioProcessor()
     val duck = AutomixDuckAudioProcessor()
     val widener = StereoWidenerAudioProcessor().apply { width = _stereoWidth.value }
+    val spectrum = createSpectrumProcessor()
 
     addAudioProcessor(eq)
     addDuckProcessor(duck)
     addStereoWidener(widener)
+    addSpectrumProcessor(spectrum)
 
     return PlayerDspProcessors(
       equalizer = eq,
       duckProcessor = duck,
-      stereoWidener = widener
+      stereoWidener = widener,
+      spectrumProcessor = spectrum,
     )
+  }
+
+  override fun createSpectrumProcessor(): SpectrumAudioProcessor {
+    return SpectrumAudioProcessor(analyzer = SpectrumAnalyzer()) { frame ->
+        _spectrumFrame.value = frame
+      }
+      .apply { analysisEnabled = spectrumEnabled }
   }
 
   override fun releaseProcessors(processors: PlayerDspProcessors) {
     removeAudioProcessor(processors.equalizer)
     removeDuckProcessor(processors.duckProcessor)
     removeStereoWidener(processors.stereoWidener)
+    processors.spectrumProcessor?.let { removeSpectrumProcessor(it) }
   }
 
   override fun addAudioProcessor(processor: CustomEqualizerAudioProcessor) {
@@ -102,6 +121,30 @@ class DspControllerImpl @Inject constructor() : DspController {
 
   override fun removeDuckProcessor(processor: AutomixDuckAudioProcessor) {
     duckProcessors.remove(processor)
+  }
+
+  override fun addSpectrumProcessor(processor: SpectrumAudioProcessor) {
+    processor.analysisEnabled = spectrumEnabled
+    spectrumProcessors.add(processor)
+  }
+
+  override fun removeSpectrumProcessor(processor: SpectrumAudioProcessor) {
+    spectrumProcessors.remove(processor)
+    if (spectrumProcessors.isEmpty()) {
+      _spectrumFrame.value = SpectrumFrame.EMPTY
+    }
+  }
+
+  override fun setSpectrumEnabled(enabled: Boolean) {
+    spectrumEnabled = enabled
+    spectrumProcessors.forEach { it.analysisEnabled = enabled }
+    if (!enabled) {
+      _spectrumFrame.value = SpectrumFrame.EMPTY
+    }
+  }
+
+  override fun resetSpectrum() {
+    _spectrumFrame.value = SpectrumFrame.EMPTY
   }
 
   override fun applyProfile(profile: SavedEQProfile): Result<Unit> {
@@ -174,6 +217,8 @@ class DspControllerImpl @Inject constructor() : DspController {
     eqProcessors.clear()
     widenerProcessors.clear()
     duckProcessors.clear()
+    spectrumProcessors.clear()
+    _spectrumFrame.value = SpectrumFrame.EMPTY
     Timber.tag(TAG).d("All DSP processors released")
   }
 }

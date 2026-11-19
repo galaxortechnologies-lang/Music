@@ -1,4 +1,4 @@
-# AGENT.md - Echo Music
+# AGENT.md - Nigutu
 
 Context file for AI agents (Antigravity, Claude Code, etc.) working in this repo.
 Keep this file up to date as the project evolves — it's the fastest way to give
@@ -104,15 +104,13 @@ If a new feature needs a UI pattern not covered in `DESIGN.md`, create a minimal
 
 ## What this app is
 
-Echo Music is a native **Android** music streaming client (Kotlin + Jetpack
-Compose) that streams from YouTube Music's catalog ad-free, and layers on
+Nigutu is a native **Android** music streaming client (Kotlin + Jetpack
+Compose, derived from Echo Music) that streams from YouTube Music's catalog ad-free, and layers on
 offline downloads, real-time synced lyrics, music recognition ("Echo Find"),
 podcasts, local media playback, Spotify import, "Listen Together" (synced
-group listening), Discord Rich Presence, and more. It ships as a single
-**GMS** build variant (Google Cast + Firebase enabled) — the previous FOSS
-(no-Google-services) flavor has been removed. See "Build variants" below.
+group listening), Discord Rich Presence, and more.
 
-Package/namespace: `echo.music.iad1tya` (app module). Application ID matches.
+App namespace / Application ID: `com.nigutu.app` (with `.debug` suffix on debug builds). Legacy source package prefix `echo.music.iad1tya.*` / `com.music.echo.*` is preserved internally inside Kotlin directories while `com.nigutu.app.R` and `com.nigutu.app.BuildConfig` are used across resources and generated config.
 
 ## Tech stack
 
@@ -299,10 +297,9 @@ NDK `27.0.12077973`. JDK 21 (kotlin/java toolchain).
   Never commit.
 - `app/google-services.json` — Firebase config, **optional**; app builds fine
   without it (GMS-only feature).
-- Build-time secrets read from `local.properties` first, then env vars:
+- Build-time secrets read from `local.properties` first, then `.env`, then env vars:
   `LASTFM_API_KEY`, `LASTFM_SECRET`, `GH_CLIENT_ID`, `GH_CLIENT_SECRET`.
-  Also `FLOW_NEURO_BASE_URL` / `FLOW_NEURO_API_KEY` (defaults to
-  `https://api.flowneuroengine.com`) as Gradle properties.
+  Also `FLOW_NEURO_BASE_URL` / `FLOW_NEURO_API_KEY` (optional; `FlowNeuroConfig` gracefully disables the client when unset or using placeholders).
 - AI lyrics translation is configured **in-app** (Settings → AI Settings),
   not at build time — supports OpenRouter (default) or custom
   OpenAI/Anthropic/Gemini-compatible providers.
@@ -329,8 +326,14 @@ Run tests with:
 
 ## CI
 
-- `.github/workflows/android-build.yml` — runs `:core:testDebugUnitTest :app:testUniversalGmsDebugUnitTest` unit tests before assembling APK artifacts.
+- `.github/workflows/android-build.yml` — runs module + `:app:testUniversalGmsDebugUnitTest` unit tests, builds `universalGmsDebug` / `universalFossDebug`, verifies APK badging via `aapt2`, packages `Nigutu-debug.apk`, and publishes a prerelease GitHub Release on `main` pushes / `workflow_dispatch`.
 - `.github/workflows/codeql.yml` — static analysis / security scanning.
+
+## Audio DSP & Real-Time Spectrum Visualizer
+
+- `:dsp-core` provides pure-Kotlin `BiquadFilter`, `ParametricEQParser`, and real-time radix-2 FFT `SpectrumAnalyzer` emitting 32-band `SpectrumFrame` telemetry.
+- `:audio-dsp` provides `SpectrumAudioProcessor` (transparent PCM pass-through tap) managed by `DspController` / `DspControllerImpl` alongside EQ, ducking, and stereo widening.
+- `:app` renders `DspSpectrumVisualizerCard` in `Player.kt` (toggled via `ShowSpectrumVisualizerKey` in `PlayerMenu`) using an offline-bundled D3 v7 (`app/src/main/assets/spectrum/d3.v7.min.js`) SVG chart inside a zero-network `WebView`.
 
 ## Local Taste Engine
 

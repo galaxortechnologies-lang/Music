@@ -173,6 +173,7 @@ import coil3.request.allowHardware
 import coil3.size.Size as CoilSize
 import coil3.toBitmap
 import com.music.echo.ui.component.BitPerfectBadge
+import com.music.echo.ui.player.DspSpectrumVisualizerCard
 import com.music.innertube.models.PODCAST_BROWSE_PREFIX
 import com.music.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_PODCAST_EPISODE
 import dagger.hilt.android.EntryPointAccessors
@@ -203,6 +204,7 @@ import echo.music.iad1tya.constants.PlayerButtonsStyleKey
 import echo.music.iad1tya.constants.PlayerHorizontalPadding
 import echo.music.iad1tya.constants.QueuePeekHeight
 import echo.music.iad1tya.constants.ShowLyricsOnPlayerKey
+import echo.music.iad1tya.constants.ShowSpectrumVisualizerKey
 import echo.music.iad1tya.constants.SliderStyle
 import echo.music.iad1tya.constants.SliderStyleKey
 import echo.music.iad1tya.constants.SquigglySliderKey
@@ -323,6 +325,16 @@ fun BottomSheetPlayer(
   val showSeekButtons by rememberPreference(echo.music.iad1tya.constants.ShowSeekButtonsKey, false)
   val cropAlbumArt by rememberPreference(CropAlbumArtKey, false)
   val showLyricsOnPlayer by rememberPreference(ShowLyricsOnPlayerKey, false)
+  val (showSpectrumVisualizer, onShowSpectrumVisualizerChange) =
+    rememberPreference(ShowSpectrumVisualizerKey, false)
+  val spectrumFrame by playerConnection.spectrumFrame.collectAsState()
+  val isSpectrumCollectionActive = showSpectrumVisualizer && state.isExpanded
+  LaunchedEffect(isSpectrumCollectionActive) {
+    playerConnection.setSpectrumVisualizerEnabled(isSpectrumCollectionActive)
+  }
+  DisposableEffect(playerConnection) {
+    onDispose { playerConnection.setSpectrumVisualizerEnabled(false) }
+  }
   val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
   val isEpisode =
     mediaMetadata?.let { metadata ->
@@ -3398,6 +3410,21 @@ fun BottomSheetPlayer(
               )
             }
 
+            androidx.compose.animation.AnimatedVisibility(
+              visible = showSpectrumVisualizer && !showInlineLyrics && !isFullScreen,
+              enter = fadeIn() + expandVertically(),
+              exit = fadeOut() + shrinkVertically(),
+            ) {
+              DspSpectrumVisualizerCard(
+                spectrumFrame = spectrumFrame,
+                isPlaying = isPlaying,
+                accentColor = MaterialTheme.colorScheme.primary,
+                contentColor = TextBackgroundColor,
+                onClose = { onShowSpectrumVisualizerChange(false) },
+                modifier = Modifier.padding(horizontal = PlayerHorizontalPadding, vertical = 8.dp),
+              )
+            }
+
             mediaMetadata?.let { controlsContent(it) }
 
             Spacer(Modifier.weight(1f))
@@ -3492,6 +3519,21 @@ fun BottomSheetPlayer(
               mediaMetadata = mediaMetadata,
               positionProvider = { effectivePosition },
               modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+            )
+          }
+
+          androidx.compose.animation.AnimatedVisibility(
+            visible = showSpectrumVisualizer && !showInlineLyrics && !isFullScreen,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically(),
+          ) {
+            DspSpectrumVisualizerCard(
+              spectrumFrame = spectrumFrame,
+              isPlaying = isPlaying,
+              accentColor = MaterialTheme.colorScheme.primary,
+              contentColor = TextBackgroundColor,
+              onClose = { onShowSpectrumVisualizerChange(false) },
+              modifier = Modifier.padding(horizontal = PlayerHorizontalPadding, vertical = 8.dp),
             )
           }
 

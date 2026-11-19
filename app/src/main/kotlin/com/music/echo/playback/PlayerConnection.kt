@@ -55,6 +55,11 @@ class PlayerConnection(
 
   val service = binder.service
   private val playerReadinessFlow = service.isPlayerReady
+  val spectrumFrame = service.dspController.spectrumFrame
+
+  fun setSpectrumVisualizerEnabled(enabled: Boolean) {
+    service.dspController.setSpectrumEnabled(enabled)
+  }
 
   private fun getPlayerSafe(): ExoPlayer {
     return try {

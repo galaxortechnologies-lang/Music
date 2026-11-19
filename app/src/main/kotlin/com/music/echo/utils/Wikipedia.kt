@@ -26,7 +26,13 @@ object Wikipedia {
           }
         )
       }
-      defaultRequest { url("https://en.wikipedia.org/api/rest_v1/") }
+      defaultRequest {
+        url("https://en.wikipedia.org/api/rest_v1/")
+        header(
+          HttpHeaders.UserAgent,
+          "Nigutu/${com.nigutu.app.BuildConfig.VERSION_NAME} (Android Music Player)",
+        )
+      }
       expectSuccess = true
     }
   }

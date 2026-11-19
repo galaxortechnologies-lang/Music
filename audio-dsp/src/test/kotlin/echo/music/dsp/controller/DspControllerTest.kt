@@ -62,4 +62,20 @@ class DspControllerTest {
     assertEquals(1.6f, controller.stereoWidth.value, 0.001f)
     assertEquals(1.6f, trio.stereoWidener.width, 0.001f)
   }
+
+  @Test
+  fun testSpectrumLifecycleAndEnableToggle() {
+    val quartet = controller.createProcessors()
+    val processor = requireNotNull(quartet.spectrumProcessor)
+
+    assertFalse(processor.analysisEnabled)
+    assertFalse(controller.spectrumFrame.value.isActive)
+
+    controller.setSpectrumEnabled(true)
+    assertTrue(processor.analysisEnabled)
+
+    controller.setSpectrumEnabled(false)
+    assertFalse(processor.analysisEnabled)
+    assertFalse(controller.spectrumFrame.value.isActive)
+  }
 }
