@@ -23,7 +23,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.music.innertube.YouTube
 import echo.music.iad1tya.LocalDatabase
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import echo.music.iad1tya.constants.InnerTubeCookieKey
 import echo.music.iad1tya.db.entities.PlaylistEntity
 import echo.music.iad1tya.extensions.isSyncEnabled

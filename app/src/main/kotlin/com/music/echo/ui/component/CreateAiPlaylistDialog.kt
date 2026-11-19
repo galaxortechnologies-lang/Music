@@ -27,7 +27,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import echo.music.iad1tya.ai.weather.WeatherUiState
 import echo.music.iad1tya.viewmodels.CreateAiPlaylistViewModel
 

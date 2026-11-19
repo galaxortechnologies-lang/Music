@@ -22,6 +22,8 @@ import com.music.innertube.YouTube
 import com.music.innertube.models.IpVersion
 import com.music.innertube.models.YouTubeLocale
 import com.music.kugou.KuGou
+import com.nigutu.app.BuildConfig
+import com.nigutu.app.R
 import dagger.hilt.android.HiltAndroidApp
 import echo.music.iad1tya.constants.*
 import echo.music.iad1tya.di.ApplicationScope

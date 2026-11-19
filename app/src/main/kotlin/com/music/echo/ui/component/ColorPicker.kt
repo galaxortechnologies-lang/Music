@@ -42,7 +42,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 
 /**
  * Pure HSV/hex color conversions used by [ColorPickerDialog]. Kept free of android.* dependencies

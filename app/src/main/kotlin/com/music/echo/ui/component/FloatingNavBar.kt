@@ -179,7 +179,7 @@ fun AppFloatingNavBar(
           },
           icon = {
             Icon(
-              painter = painterResource(echo.music.iad1tya.R.drawable.mic),
+              painter = painterResource(com.nigutu.app.R.drawable.mic),
               contentDescription = musicRecognitionContentDescription,
               tint = unselectedContentColor,
             )

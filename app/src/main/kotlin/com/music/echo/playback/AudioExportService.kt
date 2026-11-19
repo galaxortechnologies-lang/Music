@@ -17,7 +17,7 @@ import androidx.documentfile.provider.DocumentFile
 import com.arthenica.ffmpegkit.FFmpegKit
 import com.arthenica.ffmpegkit.ReturnCode
 import com.music.innertube.YouTube
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import echo.music.iad1tya.constants.AudioQuality
 import echo.music.iad1tya.constants.ExportProgressKey
 import echo.music.iad1tya.constants.ExportedSongIdsKey

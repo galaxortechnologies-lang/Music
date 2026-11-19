@@ -17,7 +17,7 @@ import androidx.media3.common.VideoSize
 import androidx.media3.common.text.Cue
 import androidx.media3.common.text.CueGroup
 import androidx.media3.exoplayer.source.ForwardingTimeline
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import echo.music.iad1tya.utils.AutomotiveArtwork.withAutomotiveArtworkUri
 
 /**

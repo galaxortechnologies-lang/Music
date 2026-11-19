@@ -8,6 +8,27 @@ if (localPropertiesFile.exists()) {
   localProperties.load(localPropertiesFile.inputStream())
 }
 
+val dotEnvProperties = Properties()
+val dotEnvFile = rootProject.file(".env")
+if (dotEnvFile.exists()) {
+  dotEnvFile.forEachLine { line ->
+    val trimmed = line.trim()
+    if (trimmed.isNotEmpty() && !trimmed.startsWith("#") && trimmed.contains("=")) {
+      val idx = trimmed.indexOf('=')
+      val key = trimmed.substring(0, idx).trim()
+      val value = trimmed.substring(idx + 1).trim().removeSurrounding("\"").removeSurrounding("'")
+      dotEnvProperties.setProperty(key, value)
+    }
+  }
+}
+
+fun resolveSecret(name: String, defaultValue: String = ""): String =
+  localProperties.getProperty(name)
+    ?: dotEnvProperties.getProperty(name)
+    ?: System.getenv(name)
+    ?: project.findProperty(name)?.toString()
+    ?: defaultValue
+
 plugins {
   id("com.android.application")
   alias(libs.plugins.hilt)
@@ -25,12 +46,12 @@ if (hasGoogleServicesConfig) {
 }
 
 android {
-  namespace = "echo.music.iad1tya"
-  compileSdk = 37
+  namespace = "com.nigutu.app"
+  compileSdkVersion("android-37.0")
   ndkVersion = "28.2.13676358"
 
   defaultConfig {
-    applicationId = "echo.music.iad1tya"
+    applicationId = "com.nigutu.app"
     minSdk = 26
     targetSdk = 36
     versionCode = 168
@@ -39,32 +60,23 @@ android {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     vectorDrawables.useSupportLibrary = true
 
-    // LastFM API keys from GitHub Secrets
-    val lastFmKey = "266d77b5790e413ada7e41ef100d017a"
-    val lastFmSecret = "41d3ae3b039ddac06c37fb30055bf93b"
+    // Last.fm API credentials via local.properties, .env, environment, or Gradle properties
+    val lastFmKey = resolveSecret("LASTFM_API_KEY")
+    val lastFmSecret = resolveSecret("LASTFM_SECRET")
 
     buildConfigField("String", "LASTFM_API_KEY", "\"$lastFmKey\"")
     buildConfigField("String", "LASTFM_SECRET", "\"$lastFmSecret\"")
 
-    // GitHub OAuth keys
-    val githubClientId =
-      localProperties.getProperty("GH_CLIENT_ID") ?: System.getenv("GH_CLIENT_ID") ?: ""
-    val githubClientSecret =
-      localProperties.getProperty("GH_CLIENT_SECRET") ?: System.getenv("GH_CLIENT_SECRET") ?: ""
+    // GitHub OAuth credentials
+    val githubClientId = resolveSecret("GH_CLIENT_ID")
+    val githubClientSecret = resolveSecret("GH_CLIENT_SECRET")
     buildConfigField("String", "GH_CLIENT_ID", "\"$githubClientId\"")
     buildConfigField("String", "GH_CLIENT_SECRET", "\"$githubClientSecret\"")
 
-    buildConfigField(
-      "String",
-      "FLOW_NEURO_BASE_URL",
-      project.findProperty("FLOW_NEURO_BASE_URL")?.toString()?.let { "\"$it\"" }
-        ?: "\"https://api.flowneuroengine.com\""
-    )
-    buildConfigField(
-      "String",
-      "FLOW_NEURO_API_KEY",
-      project.findProperty("FLOW_NEURO_API_KEY")?.toString()?.let { "\"$it\"" } ?: "\"\""
-    )
+    val flowNeuroBaseUrl = resolveSecret("FLOW_NEURO_BASE_URL", "https://api.flowneuroengine.com")
+    val flowNeuroApiKey = resolveSecret("FLOW_NEURO_API_KEY")
+    buildConfigField("String", "FLOW_NEURO_BASE_URL", "\"$flowNeuroBaseUrl\"")
+    buildConfigField("String", "FLOW_NEURO_API_KEY", "\"$flowNeuroApiKey\"")
 
     // add nightly build label support
     val isNightly = project.hasProperty("nightly") && project.property("nightly") == "true"
@@ -144,7 +156,10 @@ android {
       keyAlias = "androiddebugkey"
       keyPassword = "android"
       storePassword = "android"
-      storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+      val repoDebugKeystore = rootProject.file("debug.keystore")
+      storeFile =
+        if (repoDebugKeystore.exists()) repoDebugKeystore
+        else file("${System.getProperty("user.home")}/.android/debug.keystore")
     }
   }
 

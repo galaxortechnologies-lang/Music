@@ -88,7 +88,7 @@ import com.music.innertube.models.YTItem
 import echo.music.iad1tya.LocalDatabase
 import echo.music.iad1tya.LocalDownloadUtil
 import echo.music.iad1tya.LocalPlayerConnection
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import echo.music.iad1tya.constants.CropAlbumArtKey
 import echo.music.iad1tya.constants.GridItemSize
 import echo.music.iad1tya.constants.GridItemsSizeKey

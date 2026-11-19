@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import echo.music.iad1tya.LocalPlayerConnection
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import echo.music.iad1tya.models.MediaMetadata
 import timber.log.Timber
 

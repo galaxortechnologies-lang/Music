@@ -10,7 +10,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.toColorInt
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 
 object DownloadNotificationManager {
   private lateinit var notificationManager: NotificationManager

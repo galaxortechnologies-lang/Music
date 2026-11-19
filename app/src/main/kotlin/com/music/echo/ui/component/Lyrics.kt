@@ -126,7 +126,7 @@ import coil3.toBitmap
 import echo.music.iad1tya.LocalDatabase
 import echo.music.iad1tya.LocalListenTogetherManager
 import echo.music.iad1tya.LocalPlayerConnection
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import echo.music.iad1tya.constants.AiProviderKey
 import echo.music.iad1tya.constants.AutoTranslateKey
 import echo.music.iad1tya.constants.DarkModeKey
@@ -1150,7 +1150,7 @@ fun Lyrics(
                   Intent().apply {
                     action = Intent.ACTION_SEND
                     type = "text/plain"
-                    val songLink = "https://share.echomusic.fun/watch?v=${mediaMetadata?.id}"
+                    val songLink = "https://music.youtube.com/watch?v=${mediaMetadata?.id}"
                     putExtra(
                       Intent.EXTRA_TEXT,
                       "\"$lyricsText\"\n\n$songTitle - $artists\n$songLink"

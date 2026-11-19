@@ -16,7 +16,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.getSystemService
 import androidx.datastore.preferences.core.edit
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import echo.music.iad1tya.constants.ListenTogetherAutoApprovalKey
 import echo.music.iad1tya.constants.ListenTogetherIsHostKey
 import echo.music.iad1tya.constants.ListenTogetherRoomCodeKey

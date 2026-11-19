@@ -54,7 +54,7 @@ import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.request.crossfade
 import coil3.toBitmap
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import echo.music.iad1tya.models.MediaMetadata
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

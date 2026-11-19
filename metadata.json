@@ -1,6 +1,8 @@
 {
-  "name": "",
-  "description": "",
+  "name": "Nigutu",
+  "description": "High-fidelity Android music streaming, synced lyrics, offline playback, and audio DSP player.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

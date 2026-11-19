@@ -6,7 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import echo.music.iad1tya.db.MusicDatabase
 import echo.music.iad1tya.db.entities.AlbumArtistMap
 import echo.music.iad1tya.db.entities.AlbumEntity

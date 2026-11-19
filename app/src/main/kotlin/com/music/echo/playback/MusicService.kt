@@ -74,7 +74,7 @@ import com.music.innertube.models.response.PlayerResponse
 import com.music.innertube.pages.PodcastPage
 import dagger.hilt.android.AndroidEntryPoint
 import echo.music.iad1tya.MainActivity
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import echo.music.iad1tya.constants.AudioNormalizationKey
 import echo.music.iad1tya.constants.AudioOffload
 import echo.music.iad1tya.constants.AudioQualityKey
@@ -4960,7 +4960,7 @@ class MusicService : MediaLibraryService(), Player.Listener, PlaybackStatsListen
     val shareIntent =
       Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
-        putExtra(Intent.EXTRA_TEXT, "https://share.echomusic.fun/watch?v=$songId")
+        putExtra(Intent.EXTRA_TEXT, "https://music.youtube.com/watch?v=$songId")
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
       }
     startActivity(

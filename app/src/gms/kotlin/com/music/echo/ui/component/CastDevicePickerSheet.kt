@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.mediarouter.media.MediaRouteSelector
 import androidx.mediarouter.media.MediaRouter
 import com.google.android.gms.cast.CastMediaControlIntent
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import timber.log.Timber
 
 /** Heuristic Cast device type based on route name/description keywords. */

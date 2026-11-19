@@ -3,7 +3,7 @@ package echo.music.iad1tya.discord
 import android.content.Context
 import android.net.Uri
 import androidx.datastore.preferences.core.edit
-import echo.music.iad1tya.BuildConfig
+import com.nigutu.app.BuildConfig
 import echo.music.iad1tya.constants.DiscordAvatarUrlKey
 import echo.music.iad1tya.constants.DiscordNameKey
 import echo.music.iad1tya.constants.DiscordRefreshTokenKey

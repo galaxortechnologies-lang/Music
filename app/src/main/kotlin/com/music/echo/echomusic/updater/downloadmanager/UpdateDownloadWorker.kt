@@ -8,7 +8,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException

@@ -57,7 +57,7 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import echo.music.iad1tya.LocalPlayerAwareWindowInsets
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import echo.music.iad1tya.ui.component.Material3SettingsGroup
 import echo.music.iad1tya.ui.component.Material3SettingsItem
 import java.net.URL
@@ -102,7 +102,7 @@ fun CommitScreen(navController: NavController, scrollBehavior: TopAppBarScrollBe
       try {
         val url =
           URL(
-            "https://api.github.com/repos/EchoMusicApp/Echo-Music/commits?branch=main&per_page=50"
+            "https://api.github.com/repos/galaxortechnologies-lang/Music/commits?branch=main&per_page=50"
           )
         val json = url.openStream().bufferedReader().use { it.readText() }
         val array = JSONArray(json)

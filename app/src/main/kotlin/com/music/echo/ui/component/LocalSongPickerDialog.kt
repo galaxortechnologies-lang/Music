@@ -14,7 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import echo.music.iad1tya.LocalDatabase
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import echo.music.iad1tya.db.entities.Playlist
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

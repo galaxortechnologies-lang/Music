@@ -22,7 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.music.innertube.models.SongItem
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import echo.music.iad1tya.utils.PodcastProgress
 import echo.music.iad1tya.utils.joinByBullet
 import echo.music.iad1tya.utils.makeTimeString

@@ -14,7 +14,7 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.media3.exoplayer.scheduler.PlatformScheduler
 import androidx.media3.exoplayer.scheduler.Scheduler
 import dagger.hilt.android.AndroidEntryPoint
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import javax.inject.Inject
 
 @AndroidEntryPoint

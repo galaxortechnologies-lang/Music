@@ -68,8 +68,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
-import echo.music.iad1tya.BuildConfig
-import echo.music.iad1tya.R
+import com.nigutu.app.BuildConfig
+import com.nigutu.app.R
 import echo.music.iad1tya.ui.component.parseMarkdown
 import java.io.File
 import java.net.HttpURLConnection
@@ -133,9 +133,9 @@ fun ChangelogScreen(
           }
         } else {
           val changelogUrl =
-            URL("https://github.com/EchoMusicApp/Echo-Music/releases/download/$tag/changelog.json")
+            URL("https://github.com/galaxortechnologies-lang/Music/releases/download/$tag/changelog.json")
           val connection = changelogUrl.openConnection() as HttpURLConnection
-          connection.setRequestProperty("User-Agent", "echomusic-Changelog-App")
+          connection.setRequestProperty("User-Agent", "Nigutu-Changelog-App")
           connection.setRequestProperty("Accept", "application/json")
 
           if (connection.responseCode == 200) {
@@ -209,9 +209,9 @@ fun ChangelogScreen(
     isFetchingOldReleases = true
     coroutineScope.launch(Dispatchers.IO) {
       try {
-        val releasesUrl = URL("https://api.github.com/repos/EchoMusicApp/Echo-Music/releases")
+        val releasesUrl = URL("https://api.github.com/repos/galaxortechnologies-lang/Music/releases")
         val connection = releasesUrl.openConnection() as HttpURLConnection
-        connection.setRequestProperty("User-Agent", "echomusic-Changelog-App")
+        connection.setRequestProperty("User-Agent", "Nigutu-Changelog-App")
         connection.setRequestProperty("Accept", "application/vnd.github+json")
 
         if (connection.responseCode == 200) {

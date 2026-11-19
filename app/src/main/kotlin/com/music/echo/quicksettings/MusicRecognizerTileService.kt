@@ -6,7 +6,7 @@ import android.graphics.drawable.Icon
 import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import echo.music.iad1tya.recognition.RecognitionLaunchActivity
 
 class MusicRecognizerTileService : TileService() {

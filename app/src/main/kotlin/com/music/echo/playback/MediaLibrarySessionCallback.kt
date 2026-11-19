@@ -45,7 +45,7 @@ import com.music.innertube.pages.HomePage
 import com.music.innertube.pages.PlaylistPage
 import com.music.innertube.pages.PodcastPage
 import dagger.hilt.android.qualifiers.ApplicationContext
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import echo.music.iad1tya.constants.AutoplayOnAutomotiveConnectKey
 import echo.music.iad1tya.constants.DataSyncIdKey
 import echo.music.iad1tya.constants.HideExplicitKey

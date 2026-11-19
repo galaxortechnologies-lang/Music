@@ -1,6 +1,6 @@
 package echo.music.iad1tya.discord
 
-import echo.music.iad1tya.BuildConfig
+import com.nigutu.app.BuildConfig
 import java.net.URI
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.Dispatchers

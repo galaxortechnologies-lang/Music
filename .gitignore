@@ -35,6 +35,16 @@ lastfm-empty/build/
 # Logs
 *.log
 
+# Secrets, local config & signing keystores (never commit)
+.env
+.env.local
+local.properties
+*.jks
+*.keystore
+!debug.keystore
+keystore.jks
+keystore/
+
 # Reference source repositories (never commit)
 BitChord-main/
 ArchiveTune-main/

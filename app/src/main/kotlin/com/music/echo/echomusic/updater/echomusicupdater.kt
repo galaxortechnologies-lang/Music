@@ -73,8 +73,8 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import coil3.compose.AsyncImage
-import echo.music.iad1tya.BuildConfig
-import echo.music.iad1tya.R
+import com.nigutu.app.BuildConfig
+import com.nigutu.app.R
 import echo.music.iad1tya.echomusic.updater.downloadmanager.DownloadNotificationManager
 import echo.music.iad1tya.echomusic.updater.downloadmanager.UpdateDownloadWorker
 import echo.music.iad1tya.ui.component.AnimatedActionButton
@@ -341,7 +341,7 @@ fun UpdateScreen(navController: NavHostController) {
                     } else {
                       val urlToDownload =
                         currentStatus.apkUrl
-                          ?: "https://github.com/EchoMusicApp/Echo-Music/releases/download/${currentStatus.version}/echomusic.apk"
+                          ?: "https://github.com/galaxortechnologies-lang/Music/releases/download/${currentStatus.version}/nigutu.apk"
 
                       val constraints =
                         Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
@@ -674,7 +674,7 @@ suspend fun checkForUpdate(
 ) {
   withContext(Dispatchers.IO) {
     try {
-      val url = URL("https://api.github.com/repos/EchoMusicApp/Echo-Music/releases/latest")
+      val url = URL("https://api.github.com/repos/galaxortechnologies-lang/Music/releases/latest")
       val json = url.openStream().bufferedReader().use { it.readText() }
       val targetRelease = JSONObject(json)
 
@@ -694,7 +694,7 @@ suspend fun checkForUpdate(
         try {
           val changelogUrl =
             URL(
-              "https://github.com/EchoMusicApp/Echo-Music/releases/download/$tagWithPrefix/changelog.json"
+              "https://github.com/galaxortechnologies-lang/Music/releases/download/$tagWithPrefix/changelog.json"
             )
           val changelogJson = changelogUrl.openStream().bufferedReader().use { it.readText() }
           val changelogData = JSONObject(changelogJson)
@@ -814,7 +814,7 @@ suspend fun fetchChangelogForVersion(currentVersion: String): WhatsNewInfo? =
     try {
       val cleanCurrent = currentVersion.removePrefix("b").removePrefix("v").trim()
       val releasesJson =
-        openTimedStream("https://api.github.com/repos/EchoMusicApp/Echo-Music/releases")
+        openTimedStream("https://api.github.com/repos/galaxortechnologies-lang/Music/releases")
           .bufferedReader()
           .use { it.readText() }
       val releases = JSONArray(releasesJson)
@@ -836,7 +836,7 @@ suspend fun fetchChangelogForVersion(currentVersion: String): WhatsNewInfo? =
       try {
         val changelogJson =
           openTimedStream(
-              "https://github.com/EchoMusicApp/Echo-Music/releases/download/$tag/changelog.json"
+              "https://github.com/galaxortechnologies-lang/Music/releases/download/$tag/changelog.json"
             )
             .bufferedReader()
             .use { it.readText() }

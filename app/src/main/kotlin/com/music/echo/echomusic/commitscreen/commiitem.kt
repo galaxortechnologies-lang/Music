@@ -26,7 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 
 @Composable
 fun CommitItem(commit: CommitData, onClick: () -> Unit) {

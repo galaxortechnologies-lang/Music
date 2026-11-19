@@ -12,7 +12,7 @@ import androidx.datastore.preferences.core.edit
 import com.music.innertube.YouTube
 import com.music.innertube.models.SongItem
 import dagger.hilt.android.qualifiers.ApplicationContext
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import echo.music.iad1tya.constants.SpotifyAccessTokenExpiresAtKey
 import echo.music.iad1tya.constants.SpotifyAccessTokenKey
 import echo.music.iad1tya.constants.SpotifyAccountAvatarUrlKey

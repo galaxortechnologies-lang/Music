@@ -48,7 +48,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import echo.music.iad1tya.R
+import com.nigutu.app.R
 import echo.music.iad1tya.ui.screens.OptionStats
 
 @Composable
