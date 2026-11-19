@@ -28,11 +28,12 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: Setup Android SDK Platform, NDK & CMake
+      - name: Setup Android SDK Platform, Build Tools, NDK & CMake
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
             "platforms;android-37.0" \
+            "build-tools;36.0.0" \
             "ndk;28.2.13676358" \
             "cmake;3.22.1"
 
@@ -63,7 +64,7 @@ jobs:
             :shazamkit:testDebugUnitTest \
             :app:testUniversalGmsDebugUnitTest
 
-      - name: Build Debug APKs
+      - name: Build Debug APK
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
@@ -73,36 +74,61 @@ jobs:
           FLOW_NEURO_BASE_URL: ${{ secrets.FLOW_NEURO_BASE_URL }}
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon --max-workers=2 assembleUniversalGmsDebug assembleUniversalFossDebug
+          ./gradlew --no-daemon --max-workers=2 assembleUniversalGmsDebug
 
       - name: Verify & Package Nigutu Debug APK
         id: verify_apk
         run: |
           APK_PATH="app/build/outputs/apk/universalGms/debug/app-universalGms-debug.apk"
-          if [ ! -s "$APK_PATH" ]; then
-            APK_PATH="$(find app/build/outputs/apk -name "*debug*.apk" -size +0c | head -n 1)"
-          fi
           test -s "$APK_PATH"
           AAPT2="$(find "$ANDROID_HOME/build-tools" -name aapt2 | sort -V | tail -n 1)"
           test -x "$AAPT2"
           BADGING="$("$AAPT2" dump badging "$APK_PATH")"
           echo "$BADGING" | head -n 5
-          echo "$BADGING" | grep -qE "package: name='com\.nigutu\.app(\.debug)?'"
+          echo "$BADGING" | grep -q "package: name='com.nigutu.app.debug'"
           echo "$BADGING" | grep -q "application-label:'Nigutu'"
           cp "$APK_PATH" Nigutu-debug.apk
           ls -lh Nigutu-debug.apk
           VERSION_NAME="$(echo "$BADGING" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")"
           echo "version_name=${VERSION_NAME:-1.4.7}" >> "$GITHUB_OUTPUT"
 
+      - name: Upload Nigutu Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nigutu-Debug-APK
+          path: Nigutu-debug.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nigutu-Test-Reports
+          path: "**/build/reports/tests/**"
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Detect Release Signing Configuration
+        id: signing_config
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Decode Release Keystore (when configured)
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        if: ${{ steps.signing_config.outputs.enabled == 'true' }}
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
           echo "$KEYSTORE_BASE64" | base64 -d > keystore.jks
 
       - name: Build Release APK (when signing configured)
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        if: ${{ steps.signing_config.outputs.enabled == 'true' }}
         env:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
@@ -117,47 +143,37 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon --max-workers=2 assembleUniversalGmsRelease
 
-      - name: Upload Test Reports
-        if: always()
+      - name: Upload Signed Release APK (when built)
+        if: ${{ steps.signing_config.outputs.enabled == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: Nigutu-Test-Reports
-          path: "**/build/reports/tests/**"
-          if-no-files-found: ignore
-
-      - name: Upload Nigutu Debug & Universal APKs
-        uses: actions/upload-artifact@v4
-        with:
-          name: Nigutu-Universal-APK
-          path: |
-            Nigutu-debug.apk
-            app/build/outputs/apk/**/*.apk
+          name: Nigutu-Release-APK
+          path: app/build/outputs/apk/universalGms/release/*.apk
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Publish Nigutu Debug Release
-        if: ${{ success() && github.event_name != 'pull_request' }}
+        if: ${{ success() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION_NAME="${{ steps.verify_apk.outputs.version_name }}"
-          TAG="v${VERSION_NAME}-debug.${{ github.run_number }}-${{ github.run_attempt }}"
+          TAG="v${VERSION_NAME}-debug.${{ github.run_number }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            TAG="v${VERSION_NAME}-debug.${{ github.run_number }}-${{ github.run_attempt }}"
+          fi
           BUILD_DATE="$(date -u '+%Y-%m-%d %H:%M:%S UTC')"
           NOTES_FILE="$(mktemp)"
           cat > "$NOTES_FILE" <<EOF
-          ## Nigutu Debug Build
+          Automatically generated and verified Nigutu Android Debug APK.
 
           - **Build Date**: ${BUILD_DATE}
           - **Commit SHA**: \`${{ github.sha }}\`
           - **App Version**: \`${VERSION_NAME}\`
           - **Package ID**: \`com.nigutu.app.debug\`
-          - **Build Variant**: \`universalGmsDebug\` (also verified \`universalFossDebug\`)
-          - **Unit Tests**: Passed across library modules and \`:app\`
-
-          ### Installation Instructions
-          1. Download \`Nigutu-debug.apk\` from the assets below.
-          2. Enable **Install unknown apps** on your Android device (Android 8.0+ / API 26+).
-          3. Open \`Nigutu-debug.apk\` to install alongside release builds cleanly.
+          - **Build Variant**: \`universalGmsDebug\`
           EOF
           gh release create "$TAG" Nigutu-debug.apk \
-            --title "Nigutu Debug Build (#${{ github.run_number }})" \
+            --title "Nigutu Debug Build" \
             --notes-file "$NOTES_FILE" \
             --prerelease
